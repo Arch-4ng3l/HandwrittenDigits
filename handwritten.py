@@ -1,15 +1,15 @@
 import numpy as np
 import pandas as pd
 from play import start
+
 data = pd.read_csv("./train.csv")
 
 
-
-def print_progress_bar(iteration, total, prefix='', suffix='', length=30, fill='█'):
+def print_progress_bar(iteration, total, prefix="", suffix="", length=30, fill="█"):
     percent = ("{0:.1f}").format(100 * (iteration / float(total)))
     filled_length = int(length * iteration // total)
-    bar = fill * filled_length + '-' * (length - filled_length)
-    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end='\r')
+    bar = fill * filled_length + "-" * (length - filled_length)
+    print(f"\r{prefix} |{bar}| {percent}% {suffix}", end="\r")
     if iteration == total:
         print()
 
@@ -22,30 +22,35 @@ data_dev = data[0:1000].T
 
 Y_dev = data_dev[0]
 X_dev = data_dev[1:n]
-X_dev = X_dev / 255.
+X_dev = X_dev / 255.0
 
 data_train = data[1000:m].T
 Y_train = data_train[0]
 X_train = data_train[1:n]
-X_train = X_train / 255.
+X_train = X_train / 255.0
+
 
 def init_params():
-    W1 = np.random.rand(10, 784) -0.5
-    b1 = np.random.rand(10, 1) -0.5
+    W1 = np.random.rand(10, 784) - 0.5
+    b1 = np.random.rand(10, 1) - 0.5
 
-    W2 = np.random.rand(10, 10) -0.5
-    b2 = np.random.rand(10, 1) -0.5
+    W2 = np.random.rand(10, 10) - 0.5
+    b2 = np.random.rand(10, 1) - 0.5
     return W1, b1, W2, b2
+
 
 def ReLU(Z):
     return np.maximum(Z, 0)
 
+
 def ReLU_deriv(Z):
     return Z > 0
+
 
 def softmax(Z):
     A = np.exp(Z) / sum(np.exp(Z))
     return A
+
 
 def forward_prob(W1, b1, W2, b2, X):
     Z1 = W1.dot(X) + b1
@@ -56,13 +61,15 @@ def forward_prob(W1, b1, W2, b2, X):
 
     return Z1, A1, Z2, A2
 
+
 def one_hot(Y):
     one_hot_Y = np.zeros((Y.size, Y.max() + 1))
     one_hot_Y[np.arange(Y.size), Y] = 1
     one_hot_Y = one_hot_Y.T
     return one_hot_Y
 
-def back_prob(Z1,A1, Z2, A2, W2, X, Y):
+
+def back_prob(Z1, A1, A2, W2, X, Y):
     one_hot_Y = one_hot(Y)
 
     dZ2 = A2 - one_hot_Y
@@ -74,6 +81,7 @@ def back_prob(Z1,A1, Z2, A2, W2, X, Y):
     db1 = 1 / m * np.sum(dZ1)
     return dW1, db1, dW2, db2
 
+
 def update_params(W1, b1, W2, b2, dW1, db1, dW2, db2, alpha):
     W1 = W1 - alpha * dW1
     b1 = b1 = alpha * db1
@@ -81,17 +89,26 @@ def update_params(W1, b1, W2, b2, dW1, db1, dW2, db2, alpha):
     b2 = b2 = alpha * db2
     return W1, b1, W2, b2
 
+
 def get_predictions(A2):
     return np.argmax(A2, 0)
 
+
 def get_acc(predictions, Y):
     return np.sum(predictions == Y) / Y.size
+
 
 def gradient_descent(X, Y, iterations, alpha):
     W1, b1, W2, b2 = init_params()
     acc = 0
     for i in range(iterations):
-        print_progress_bar(i, iterations, prefix=f'{i}-{iterations}', suffix=f"Completed | Accuracy: {acc * 100:.4f}%", length=50)
+        print_progress_bar(
+            i,
+            iterations,
+            prefix=f"{i}-{iterations}",
+            suffix=f"Completed | Accuracy: {acc * 100:.4f}%",
+            length=50,
+        )
         Z1, A1, Z2, A2 = forward_prob(W1, b1, W2, b2, X)
         dW1, db1, dW2, db2 = back_prob(Z1, A1, Z2, A2, W2, X, Y)
         W1, b1, W2, b2 = update_params(W1, b1, W2, b2, dW1, db1, dW2, db2, alpha)
@@ -102,9 +119,11 @@ def gradient_descent(X, Y, iterations, alpha):
 
 W1, b1, W2, b2 = gradient_descent(X_train, Y_train, 500, 0.1)
 
+
 def make_predictions(X):
     _, _, _, A2 = forward_prob(W1, b1, W2, b2, X)
     predictions = get_predictions(A2)
     return predictions[0]
+
 
 start(make_predictions)
